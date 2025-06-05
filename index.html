@@ -1,22 +1,148 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Employee Management</title>
-  <link rel="stylesheet" href="style.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <style>
+    body {
+      padding: 20px;
+    }
+    .table-container {
+      margin-top: 30px;
+    }
+  </style>
 </head>
 <body>
+
   <div class="container">
-    <h1>Employee Management</h1>
+    <h2 class="mb-4">Employee Management</h2>
+    
     <form id="employeeForm">
-      <input type="text" id="name" placeholder="Name" required>
-      <input type="text" id="position" placeholder="Position" required>
-      <input type="email" id="email" placeholder="Email" required>
-      <button type="submit">Add Employee</button>
+      <div class="row g-3">
+        <div class="col-md-4">
+          <input type="text" class="form-control" id="name" placeholder="Employee Name" required />
+        </div>
+        <div class="col-md-4">
+          <input type="number" class="form-control" id="salary" placeholder="Salary" required />
+        </div>
+        <div class="col-md-4">
+          <select class="form-select" id="position" required>
+            <option value="">Select Position</option>
+            <option>Software Developer</option>
+            <option>Data Analyst</option>
+            <option>Team Leader</option>
+            <option>Manager</option>
+            <option>HR</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <input type="number" class="form-control" id="age" placeholder="Age" required />
+        </div>
+        <div class="col-md-2">
+          <select class="form-select" id="gender" required>
+            <option value="">Gender</option>
+            <option>Male</option>
+            <option>Female</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-primary w-100">Add Employee</button>
+        </div>
+      </div>
     </form>
-    <h2>Employee List</h2>
-    <ul id="employeeList"></ul>
+
+    <div class="table-container">
+      <table class="table table-bordered table-hover mt-4" id="employeeTable">
+        <thead class="table-dark">
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Salary</th>
+            <th>Position</th>
+            <th>Age</th>
+            <th>Gender</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <!-- Dynamic rows will be inserted here -->
+        </tbody>
+      </table>
+    </div>
   </div>
-  <script src="script.js"></script>
+
+  <script>
+    const form = document.getElementById('employeeForm');
+    const tableBody = document.getElementById('tableBody');
+
+    let employees = JSON.parse(localStorage.getItem('employees')) || [];
+
+    const generateId = () => {
+      let id;
+      do {
+        id = Math.floor(1000000000 + Math.random() * 9000000000).toString();
+      } while (employees.some(emp => emp.id === id));
+      return id;
+    };
+
+    const updateLocalStorage = () => {
+      localStorage.setItem('employees', JSON.stringify(employees));
+    };
+
+    const addRowToTable = (emp) => {
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>${emp.id}</td>
+        <td>${emp.name}</td>
+        <td>${emp.salary}</td>
+        <td>${emp.position}</td>
+        <td>${emp.age}</td>
+        <td>${emp.gender}</td>
+        <td><button class="btn btn-danger btn-sm" onclick="deleteEmployee('${emp.id}')">Delete</button></td>
+      `;
+      tableBody.appendChild(row);
+    };
+
+    const renderTable = () => {
+      tableBody.innerHTML = '';
+      employees.forEach(emp => addRowToTable(emp));
+    };
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      const name = document.getElementById('name').value.trim();
+      const salary = document.getElementById('salary').value;
+      const position = document.getElementById('position').value;
+      const age = document.getElementById('age').value;
+      const gender = document.getElementById('gender').value;
+
+      if (name && salary && position && age && gender) {
+        const newEmp = {
+          id: generateId(),
+          name,
+          salary,
+          position,
+          age,
+          gender
+        };
+        employees.push(newEmp);
+        updateLocalStorage();
+        addRowToTable(newEmp);
+        form.reset();
+      }
+    });
+
+    window.deleteEmployee = function(id) {
+      employees = employees.filter(emp => emp.id !== id);
+      updateLocalStorage();
+      renderTable();
+    };
+
+    // Initial render
+    renderTable();
+  </script>
 </body>
 </html>
